@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.env
+*.log
+.DS_Store
+# Arquivos enviados na área de Anexos (ficam só no servidor)
+api/uploads/
