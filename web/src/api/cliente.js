@@ -1,73 +1,73 @@
 const BASE = import.meta.env.VITE_API_URL || '/api';
-const CHAVE_TOKEN = 'taskly_token';
+const CLAVE_TOKEN = 'taskly_token';
 
 export const token = {
-  ler: () => {
+  leer: () => {
     try {
-      return localStorage.getItem(CHAVE_TOKEN);
+      return localStorage.getItem(CLAVE_TOKEN);
     } catch {
       return null;
     }
   },
-  salvar: (valor) => {
+  guardar: (valor) => {
     try {
-      localStorage.setItem(CHAVE_TOKEN, valor);
+      localStorage.setItem(CLAVE_TOKEN, valor);
     } catch {
-      /* navegador sem armazenamento: segue só em memória */
+      /* navegador sin almacenamiento: sigue solo en memoria */
     }
   },
-  limpar: () => {
+  limpiar: () => {
     try {
-      localStorage.removeItem(CHAVE_TOKEN);
+      localStorage.removeItem(CLAVE_TOKEN);
     } catch {
       /* ignora */
     }
   },
 };
 
-export class ErroApi extends Error {
-  constructor(status, mensagem, detalhes) {
-    super(mensagem);
+export class ErrorApi extends Error {
+  constructor(status, mensaje, detalles) {
+    super(mensaje);
     this.status = status;
-    this.detalhes = detalhes;
+    this.detalles = detalles;
   }
 }
 
-let aoExpirarSessao = () => {};
-export function definirAoExpirarSessao(fn) {
-  aoExpirarSessao = fn;
+let alExpirarSesion = () => {};
+export function definirAlExpirarSesion(fn) {
+  alExpirarSesion = fn;
 }
 
-async function chamar(metodo, caminho, corpo) {
-  const cabecalhos = { 'Content-Type': 'application/json' };
-  const t = token.ler();
-  if (t) cabecalhos.Authorization = `Bearer ${t}`;
+async function llamar(metodo, ruta, cuerpo) {
+  const cabeceras = { 'Content-Type': 'application/json' };
+  const t = token.leer();
+  if (t) cabeceras.Authorization = `Bearer ${t}`;
 
-  let resposta;
+  let respuesta;
   try {
-    resposta = await fetch(BASE + caminho, {
+    respuesta = await fetch(BASE + ruta, {
       method: metodo,
-      headers: cabecalhos,
-      body: corpo !== undefined ? JSON.stringify(corpo) : undefined,
+      headers: cabeceras,
+      body: cuerpo !== undefined ? JSON.stringify(cuerpo) : undefined,
     });
   } catch {
-    throw new ErroApi(0, 'Não foi possível falar com a API. Ela está rodando?');
+    throw new ErrorApi(0, 'No se pudo conectar con la API. ¿Está en marcha?');
   }
 
-  if (resposta.status === 204) return null;
-  const dados = await resposta.json().catch(() => null);
+  if (respuesta.status === 204) return null;
+  const datos = await respuesta.json().catch(() => null);
 
-  if (!resposta.ok) {
-    if (resposta.status === 401 && t) aoExpirarSessao();
-    const detalhes = dados?.detalhes;
-    let mensagem = dados?.erro || `Erro ${resposta.status}`;
-    if (!dados && resposta.status >= 500) {
-      mensagem = 'A API não respondeu. Verifique se o terminal da API está rodando (npm run dev na pasta api) e se apareceu algum erro nele.';
+  if (!respuesta.ok) {
+    if (respuesta.status === 401 && t) alExpirarSesion();
+    const detalles = datos?.detalles;
+    let mensaje = datos?.error || `Erro ${respuesta.status}`;
+    if (!datos && respuesta.status >= 500) {
+      mensaje = 'La API no respondió. Comprueba que el terminal de la API está en marcha (npm run dev en la carpeta api) y si aparece algún error en él.';
     }
-    if (detalhes && typeof detalhes === 'object') mensagem += `: ${Object.values(detalhes).join(', ')}`;
-    throw new ErroApi(resposta.status, mensagem, detalhes);
+    if (detalles && typeof detalles === 'object') mensaje += `: ${Object.values(detalles).join(', ')}`;
+    throw new ErrorApi(respuesta.status, mensaje, detalles);
   }
-  return dados;
+  return datos;
 }
 
 export function montarQuery(params = {}) {
@@ -79,43 +79,43 @@ export function montarQuery(params = {}) {
   return s ? `?${s}` : '';
 }
 
-// Endereço completo de um caminho da API (ex.: links temporários de anexos).
-export function urlApi(caminho) {
-  return BASE + caminho;
+// Dirección completa de una ruta de la API (p. ej.: enlaces temporales de adjuntos).
+export function urlApi(ruta) {
+  return BASE + ruta;
 }
 
-// Envio de arquivos com barra de progresso (fetch não informa o progresso do upload).
-export function enviarArquivos(caminho, arquivos, { descricao, aoProgresso } = {}) {
+// Subida de archivos con barra de progreso (fetch no informa del progreso de la subida).
+export function enviarArchivos(ruta, archivos, { descripcion, alProgreso } = {}) {
   return new Promise((resolve, reject) => {
     const fd = new FormData();
-    arquivos.forEach((a) => fd.append('arquivos', a, a.name));
-    if (descricao) fd.append('descricao', descricao);
+    archivos.forEach((a) => fd.append('archivos', a, a.name));
+    if (descripcion) fd.append('descripcion', descripcion);
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', BASE + caminho);
-    const t = token.ler();
+    xhr.open('POST', BASE + ruta);
+    const t = token.leer();
     if (t) xhr.setRequestHeader('Authorization', `Bearer ${t}`);
-    xhr.upload.onprogress = (e) => e.lengthComputable && aoProgresso?.(Math.round((e.loaded / e.total) * 100));
+    xhr.upload.onprogress = (e) => e.lengthComputable && alProgreso?.(Math.round((e.loaded / e.total) * 100));
     xhr.onload = () => {
-      let dados = null;
+      let datos = null;
       try {
-        dados = JSON.parse(xhr.responseText);
+        datos = JSON.parse(xhr.responseText);
       } catch {
-        /* resposta sem JSON */
+        /* respuesta sin JSON */
       }
-      if (xhr.status >= 200 && xhr.status < 300) resolve(dados);
+      if (xhr.status >= 200 && xhr.status < 300) resolve(datos);
       else {
-        if (xhr.status === 401 && t) aoExpirarSessao();
-        reject(new ErroApi(xhr.status, dados?.erro || (xhr.status === 413 ? 'Arquivo muito grande.' : `Erro ${xhr.status} no envio`)));
+        if (xhr.status === 401 && t) alExpirarSesion();
+        reject(new ErrorApi(xhr.status, datos?.error || (xhr.status === 413 ? 'Archivo demasiado grande.' : `Erro ${xhr.status} en la subida`)));
       }
     };
-    xhr.onerror = () => reject(new ErroApi(0, 'Não foi possível enviar. A API está rodando?'));
+    xhr.onerror = () => reject(new ErrorApi(0, 'No se pudo enviar. ¿Está en marcha la API?'));
     xhr.send(fd);
   });
 }
 
 export const api = {
-  get: (c) => chamar('GET', c),
-  post: (c, b) => chamar('POST', c, b ?? {}),
-  patch: (c, b) => chamar('PATCH', c, b ?? {}),
-  del: (c) => chamar('DELETE', c),
+  get: (c) => llamar('GET', c),
+  post: (c, b) => llamar('POST', c, b ?? {}),
+  patch: (c, b) => llamar('PATCH', c, b ?? {}),
+  del: (c) => llamar('DELETE', c),
 };

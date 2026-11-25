@@ -1,32 +1,32 @@
 import { Router } from 'express';
 import { autenticar } from '../middlewares/auth.js';
-import { rota } from '../utils/http.js';
-import { assistenteConfigurado, limparConversa, mensagensDaConversa, responder } from '../chat/assistente.js';
+import { ruta } from '../utils/http.js';
+import { asistenteConfigurado, limpiarConversacion, mensajesDeConversacion, responder } from '../chat/asistente.js';
 
 const router = Router();
 router.use(autenticar);
 
-// Histórico da conversa atual
+// Historial de la conversación actual
 router.get(
   '/',
-  rota(async (req, res) => {
-    res.json({ configurado: assistenteConfigurado(), mensagens: await mensagensDaConversa(req.usuario) });
+  ruta(async (req, res) => {
+    res.json({ configurado: asistenteConfigurado(), mensajes: await mensajesDeConversacion(req.usuario) });
   })
 );
 
-// Enviar mensagem ao assistente
+// Enviar mensaje al asistente
 router.post(
   '/',
-  rota(async (req, res) => {
-    res.json(await responder(req.usuario, req.body?.mensagem));
+  ruta(async (req, res) => {
+    res.json(await responder(req.usuario, req.body?.mensaje));
   })
 );
 
-// Começar uma nova conversa
+// Empezar una conversación nueva
 router.delete(
   '/',
-  rota(async (req, res) => {
-    await limparConversa(req.usuario);
+  ruta(async (req, res) => {
+    await limpiarConversacion(req.usuario);
     res.status(204).end();
   })
 );

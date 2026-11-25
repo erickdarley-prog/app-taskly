@@ -2,57 +2,57 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, FileSignature, Mail, Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
-import { MensagemErro } from '../components/Elementos.jsx';
+import { MensajeError } from '../components/Elementos.jsx';
 import { MarcaAwakelab } from '../components/Layout.jsx';
 
-const PARTES = ['Marcos', 'Tarefas', 'Escopo e acordo', 'Diário', 'Assistente'];
+const PARTES = ['Hitos', 'Tareas', 'Alcance y acuerdo', 'Diario', 'Asistente'];
 
-// Aceita o link inteiro do e-mail ou só o código do acordo.
-function extrairCodigo(texto) {
+// Acepta el enlace completo del e-mail o solo el código del acuerdo.
+function extraerCodigo(texto) {
   const valor = String(texto || '').trim();
-  const doLink = valor.match(/\/acordo\/([A-Za-z0-9_-]+)/);
-  return doLink ? doLink[1] : valor;
+  const delLink = valor.match(/\/acuerdo\/([A-Za-z0-9_-]+)/);
+  return delLink ? delLink[1] : valor;
 }
 
 export default function Login() {
   const { entrar } = useAuth();
   const navegar = useNavigate();
   const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
+  const [contrasena, setContrasena] = useState('');
   const [codigo, setCodigo] = useState('');
-  const [erro, setErro] = useState(null);
+  const [error, setError] = useState(null);
   const [enviando, setEnviando] = useState(false);
 
   const enviar = async (e) => {
     e.preventDefault();
-    setErro(null);
+    setError(null);
     setEnviando(true);
     try {
-      await entrar(email, senha);
-      navegar('/projetos', { replace: true });
+      await entrar(email, contrasena);
+      navegar('/proyectos', { replace: true });
     } catch (err) {
-      setErro(err);
+      setError(err);
     } finally {
       setEnviando(false);
     }
   };
 
-  const abrirAcordo = (e) => {
+  const abrirAcuerdo = (e) => {
     e.preventDefault();
-    const c = extrairCodigo(codigo);
-    if (c) navegar(`/acordo/${c}`);
+    const c = extraerCodigo(codigo);
+    if (c) navegar(`/acuerdo/${c}`);
   };
 
   return (
     <div className="login">
-      <section className="login-apresentacao">
+      <section className="login-presentacion">
         <MarcaAwakelab altura={38} />
-        <p className="etiqueta-capa">Gestão de projetos · Awakelab</p>
+        <p className="etiqueta-portada">Gestión de proyectos · Awakelab</p>
         <h1>
-          Projetos de clientes, <span className="destaque">do escopo à entrega</span>
+          Proyectos de clientes, <span className="destacado">del alcance a la entrega</span>
         </h1>
         <p className="login-texto">
-          Marcos com datas, tarefas da Awakelab e do cliente, escopo assinado pelas duas partes e um diário do que acontece em cada dia.
+          Hitos con fechas, tareas de Awakelab y del cliente, alcance firmado por las dos partes y un diario de lo que pasa cada día.
         </p>
         <ol className="login-partes">
           {PARTES.map((p, i) => (
@@ -62,50 +62,50 @@ export default function Login() {
             </li>
           ))}
         </ol>
-        <p className="login-rodape">
-          <strong>Taskly</strong> · plataforma de uso interno da equipe Awakelab
+        <p className="login-pie">
+          <strong>Taskly</strong> · plataforma de uso interno del equipo de Awakelab
         </p>
       </section>
 
       <section className="login-lado">
-        <div className="login-cartoes">
-          <form className="cartao login-cartao" onSubmit={enviar}>
-            <h2>Entrar no Taskly</h2>
-            <p className="texto-suave">Equipe e administradores da Awakelab. Use o e-mail e a senha que o administrador te passou.</p>
+        <div className="login-tarjetas">
+          <form className="tarjeta login-tarjeta" onSubmit={enviar}>
+            <h2>Entrar en Taskly</h2>
+            <p className="texto-suave">Equipo y administradores de Awakelab. Usa el e-mail y la contraseña que te dio el administrador.</p>
             <label className="campo">
               <span className="campo-rotulo">E-mail</span>
-              <span className="campo-com-icone">
+              <span className="campo-con-icono">
                 <Mail size={18} aria-hidden="true" />
                 <input type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
               </span>
             </label>
             <label className="campo">
-              <span className="campo-rotulo">Senha</span>
-              <span className="campo-com-icone">
+              <span className="campo-rotulo">Contraseña</span>
+              <span className="campo-con-icono">
                 <Lock size={18} aria-hidden="true" />
-                <input type="password" autoComplete="current-password" value={senha} onChange={(e) => setSenha(e.target.value)} required />
+                <input type="password" autoComplete="current-password" value={contrasena} onChange={(e) => setContrasena(e.target.value)} required />
               </span>
             </label>
-            <MensagemErro erro={erro} />
-            <button type="submit" className="botao botao-largo botao-grande" disabled={enviando}>
+            <MensajeError error={error} />
+            <button type="submit" className="boton boton-ancho boton-grande" disabled={enviando}>
               {enviando ? 'Entrando…' : 'Entrar'}
             </button>
           </form>
 
-          <form className="cartao login-cartao login-cliente" onSubmit={abrirAcordo}>
+          <form className="tarjeta login-tarjeta login-cliente" onSubmit={abrirAcuerdo}>
             <h3>
-              <FileSignature size={18} aria-hidden="true" /> É cliente e recebeu um acordo para assinar?
+              <FileSignature size={18} aria-hidden="true" /> ¿Eres cliente y has recibido un acuerdo para firmar?
             </h3>
-            <p className="texto-suave">Cole o link do e-mail ou o código do acordo. Não precisa de conta.</p>
+            <p className="texto-suave">Pega el enlace del e-mail o el código del acuerdo. No necesitas cuenta.</p>
             <div className="login-codigo">
-              <input value={codigo} onChange={(e) => setCodigo(e.target.value)} placeholder="Link ou código do acordo" aria-label="Link ou código do acordo" />
-              <button type="submit" className="botao botao-contorno" disabled={!codigo.trim()}>
+              <input value={codigo} onChange={(e) => setCodigo(e.target.value)} placeholder="Enlace o código del acuerdo" aria-label="Enlace o código del acuerdo" />
+              <button type="submit" className="boton boton-contorno" disabled={!codigo.trim()}>
                 Abrir <ArrowRight size={16} />
               </button>
             </div>
           </form>
 
-          <p className="login-aviso">Uso interno da Awakelab · O cliente acessa apenas o acordo enviado a ele.</p>
+          <p className="login-aviso">Uso interno de Awakelab · El cliente solo accede al acuerdo que se le envió.</p>
         </div>
       </section>
     </div>

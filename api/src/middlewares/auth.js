@@ -1,39 +1,39 @@
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
 import { Usuario } from '../models/Usuario.js';
-import { ErroHttp, rota } from '../utils/http.js';
+import { ErrorHttp, ruta } from '../utils/http.js';
 
-export function gerarToken(usuario) {
-  return jwt.sign({ sub: String(usuario._id), papel: usuario.papel }, env.jwtSecret, {
+export function generarToken(usuario) {
+  return jwt.sign({ sub: String(usuario._id), rol: usuario.rol }, env.jwtSecret, {
     expiresIn: env.jwtExpiresIn,
   });
 }
 
-// Exige login: lê o token "Bearer" e carrega o usuário em req.usuario.
-export const autenticar = rota(async (req, _res, next) => {
-  const cabecalho = req.headers.authorization || '';
-  const [tipo, token] = cabecalho.split(' ');
-  if (tipo !== 'Bearer' || !token) throw new ErroHttp(401, 'Faça login para continuar');
+// Exige login: lee el token "Bearer" y carga el usuario en req.usuario.
+export const autenticar = ruta(async (req, _res, next) => {
+  const cabecera = req.headers.authorization || '';
+  const [tipo, token] = cabecera.split(' ');
+  if (tipo !== 'Bearer' || !token) throw new ErrorHttp(401, 'Inicia sesión para continuar');
 
-  let dados;
+  let datos;
   try {
-    dados = jwt.verify(token, env.jwtSecret);
+    datos = jwt.verify(token, env.jwtSecret);
   } catch {
-    throw new ErroHttp(401, 'Sessão expirada ou inválida. Faça login novamente');
+    throw new ErrorHttp(401, 'Sesión caducada o no válida. Vuelve a iniciar sesión');
   }
 
-  const usuario = await Usuario.findById(dados.sub);
-  if (!usuario || !usuario.ativo) throw new ErroHttp(401, 'Usuário não encontrado ou desativado');
+  const usuario = await Usuario.findById(datos.sub);
+  if (!usuario || !usuario.activo) throw new ErrorHttp(401, 'Usuario no encontrado o desactivado');
 
   req.usuario = usuario;
   next();
 });
 
-export function somenteAdmin(req, _res, next) {
-  if (req.usuario?.papel !== 'admin') {
-    return next(new ErroHttp(403, 'Apenas administradores podem fazer isso'));
+export function soloAdmin(req, _res, next) {
+  if (req.usuario?.rol !== 'admin') {
+    return next(new ErrorHttp(403, 'Solo los administradores pueden hacer esto'));
   }
   next();
 }
 
-export const ehAdmin = (usuario) => usuario?.papel === 'admin';
+export const esAdmin = (usuario) => usuario?.rol === 'admin';

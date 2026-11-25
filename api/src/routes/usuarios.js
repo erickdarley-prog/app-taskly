@@ -1,19 +1,19 @@
 import { Router } from 'express';
-import { autenticar, somenteAdmin } from '../middlewares/auth.js';
-import { rota } from '../utils/http.js';
-import * as usuarios from '../servicos/usuarios.js';
+import { autenticar, soloAdmin } from '../middlewares/auth.js';
+import { ruta } from '../utils/http.js';
+import * as usuarios from '../servicios/usuarios.js';
 
 const router = Router();
-router.use(autenticar, somenteAdmin);
+router.use(autenticar, soloAdmin);
 
-// Lista paginada (tela de Usuários)
-router.get('/', rota(async (req, res) => res.json(await usuarios.listarUsuarios(req.usuario, req.query))));
+// Lista paginada (pantalla de Usuarios)
+router.get('/', ruta(async (req, res) => res.json(await usuarios.listarUsuarios(req.usuario, req.query))));
 
-// Lista curta de usuários ativos, para preencher seletores (integrantes, responsável)
-router.get('/opcoes', rota(async (req, res) => res.json(await usuarios.opcoesDeUsuarios(req.usuario, req.query))));
+// Lista corta de usuarios activos, para rellenar selectores (integrantes, responsable)
+router.get('/opciones', ruta(async (req, res) => res.json(await usuarios.opcionesDeUsuarios(req.usuario, req.query))));
 
-router.post('/', rota(async (req, res) => res.status(201).json(await usuarios.criarUsuario(req.usuario, req.body))));
+router.post('/', ruta(async (req, res) => res.status(201).json(await usuarios.crearUsuario(req.usuario, req.body))));
 
-router.patch('/:id', rota(async (req, res) => res.json(await usuarios.atualizarUsuario(req.usuario, req.params.id, req.body))));
+router.patch('/:id', ruta(async (req, res) => res.json(await usuarios.actualizarUsuario(req.usuario, req.params.id, req.body))));
 
 export default router;

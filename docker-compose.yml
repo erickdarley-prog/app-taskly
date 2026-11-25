@@ -1,4 +1,4 @@
-# Opcional: sobe só o MongoDB, caso você prefira usar Docker em vez de instalar o MongoDB.
+# Opcional: levanta solo MongoDB, por si prefieres usar Docker en lugar de instalar MongoDB.
 # Uso: docker compose up -d
 services:
   mongo:
@@ -7,8 +7,8 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - taskly-dados:/data/db
+      - taskly-datos:/data/db
     restart: unless-stopped
 
 volumes:
-  taskly-dados:
+  taskly-datos:

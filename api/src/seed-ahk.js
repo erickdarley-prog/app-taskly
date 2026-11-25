@@ -1,186 +1,186 @@
-// Projeto de exemplo completo, seguindo o modelo pedido:
-// marcos com tarefas da Awakelab e do Cliente, escopo assinado pelas duas partes e diário.
-import { Projeto } from './models/Projeto.js';
-import { Marco } from './models/Marco.js';
-import { Tarefa } from './models/Tarefa.js';
-import { Historico } from './models/Historico.js';
-import { Acordo } from './models/Acordo.js';
+// Proyecto de ejemplo completo, siguiendo el modelo pedido:
+// hitos con tareas de Awakelab y del Cliente, alcance firmado por las dos partes y diario.
+import { Proyecto } from './models/Proyecto.js';
+import { Hito } from './models/Hito.js';
+import { Tarea } from './models/Tarea.js';
+import { Historial } from './models/Historial.js';
+import { Acuerdo } from './models/Acuerdo.js';
 import { RegistroDiario } from './models/RegistroDiario.js';
-import { abrirRascunho, atualizarRascunho, assinarPelaEmpresa, concordarPublico, enviarParaAssinatura } from './servicos/acordos.js';
+import { abrirBorrador, actualizarBorrador, firmarPorEmpresa, aceptarPublico, enviarParaFirma } from './servicios/acuerdos.js';
 
 const A = 'awakelab';
 const C = 'cliente';
 
-// [título do marco, início, fim, tarefas: [título, lado, responsável (e-mail ou nome do cliente), status, prazo]]
-const MARCOS = [
-  ['Recopilar informação', -16, -13, [
-    ['Fornecer dados da empresa, logos e cores', C, 'Laura Méndez', 'concluida', -14],
-    ['Enviar lista de cursos que deseja oferecer', C, 'Laura Méndez', 'concluida', -13],
-    ['Enviar catálogo de cursos e planos', A, 'carla@taskly.local', 'concluida', -15],
-    ['Reunião de kickoff com o cliente', A, 'admin@taskly.local', 'concluida', -16],
+// [título del hito, inicio, fin, tareas: [título, lado, responsable (e-mail o nombre del cliente), estado, plazo]]
+const HITOS = [
+  ['Recopilar información', -16, -13, [
+    ['Facilitar datos de la empresa, logos y colores', C, 'Laura Méndez', 'completada', -14],
+    ['Enviar lista de cursos que desea ofrecer', C, 'Laura Méndez', 'completada', -13],
+    ['Enviar catálogo de cursos y planes', A, 'carla@taskly.local', 'completada', -15],
+    ['Reunión de kickoff con el cliente', A, 'admin@taskly.local', 'completada', -16],
   ]],
-  ['Criar domínios', -14, -13, [
-    ['Aprovar o nome do domínio', C, 'Laura Méndez', 'concluida', -14],
-    ['Configurar DNS e subdomínios', A, 'joao@taskly.local', 'concluida', -13],
-    ['Instalar certificado SSL', A, 'joao@taskly.local', 'concluida', -13],
+  ['Crear dominios', -14, -13, [
+    ['Aprobar el nombre del dominio', C, 'Laura Méndez', 'completada', -14],
+    ['Configurar DNS y subdominios', A, 'joao@taskly.local', 'completada', -13],
+    ['Instalar certificado SSL', A, 'joao@taskly.local', 'completada', -13],
   ]],
-  ['Desdobrar a plataforma base com Moodle 4.5', -13, -12, [
-    ['Instalar Moodle 4.5', A, 'joao@taskly.local', 'concluida', -12],
-    ['Configurar idiomas, fuso e e-mails do sistema', A, 'joao@taskly.local', 'concluida', -12],
-    ['Validar acesso de administrador', C, 'Laura Méndez', 'concluida', -12],
+  ['Desplegar la plataforma base con Moodle 4.5', -13, -12, [
+    ['Instalar Moodle 4.5', A, 'joao@taskly.local', 'completada', -12],
+    ['Configurar idiomas, zona horaria y e-mails del sistema', A, 'joao@taskly.local', 'completada', -12],
+    ['Validar el acceso de administrador', C, 'Laura Méndez', 'completada', -12],
   ]],
-  ['Proposta gráfica', -10, -3, [
-    ['Criar duas propostas de layout', A, 'maria@taskly.local', 'concluida', -6],
-    ['Escolher a proposta e enviar feedback', C, 'Laura Méndez', 'em_andamento', -2],
-    ['Aplicar o tema escolhido no Moodle', A, 'maria@taskly.local', 'a_fazer', 2],
+  ['Propuesta gráfica', -10, -3, [
+    ['Crear dos propuestas de diseño', A, 'maria@taskly.local', 'completada', -6],
+    ['Elegir la propuesta y enviar comentarios', C, 'Laura Méndez', 'en_curso', -2],
+    ['Aplicar el tema elegido en Moodle', A, 'maria@taskly.local', 'por_hacer', 2],
   ]],
-  ['Informes e dashboard SEPE', -2, 8, [
-    ['Informes detalhados de avanço de alunos', A, 'joao@taskly.local', 'em_andamento', 5],
-    ['Dashboard administrativo para enviar ao SEPE', A, 'ana@taskly.local', 'a_fazer', 8],
-    ['Enviar modelo de relatório exigido pelo SEPE', C, 'Laura Méndez', 'a_fazer', 1],
+  ['Informes y dashboard SEPE', -2, 8, [
+    ['Informes detallados de avance de alumnos', A, 'joao@taskly.local', 'en_curso', 5],
+    ['Dashboard administrativo para enviar al SEPE', A, 'ana@taskly.local', 'por_hacer', 8],
+    ['Enviar plantilla de informe exigida por el SEPE', C, 'Laura Méndez', 'por_hacer', 1],
   ]],
-  ['Carga de cursos e usuários', 6, 12, [
-    ['Enviar planilha de alunos e tutores', C, 'Laura Méndez', 'a_fazer', 7],
-    ['Importar cursos do catálogo', A, 'carla@taskly.local', 'a_fazer', 10],
-    ['Importar usuários e matrículas', A, 'joao@taskly.local', 'a_fazer', 12],
+  ['Carga de cursos y usuarios', 6, 12, [
+    ['Enviar hoja de cálculo de alumnos y tutores', C, 'Laura Méndez', 'por_hacer', 7],
+    ['Importar cursos del catálogo', A, 'carla@taskly.local', 'por_hacer', 10],
+    ['Importar usuarios y matrículas', A, 'joao@taskly.local', 'por_hacer', 12],
   ]],
-  ['Testes, treinamento e entrega', 12, 16, [
-    ['Testes completos da plataforma', A, 'pedro@taskly.local', 'a_fazer', 14],
-    ['Homologação pelo cliente', C, 'Laura Méndez', 'a_fazer', 15],
-    ['Treinamento de administradores (2 h)', A, 'admin@taskly.local', 'a_fazer', 16],
+  ['Pruebas, formación y entrega', 12, 16, [
+    ['Pruebas completas de la plataforma', A, 'pedro@taskly.local', 'por_hacer', 14],
+    ['Validación por el cliente', C, 'Laura Méndez', 'por_hacer', 15],
+    ['Formación de administradores (2 h)', A, 'admin@taskly.local', 'por_hacer', 16],
   ]],
 ];
 
-const ESCOPO = {
+const ALCANCE = {
   incluidos: [
-    'Plataforma Moodle 4.5 com domínio próprio e certificado SSL',
-    'Tema gráfico personalizado com a identidade do cliente',
-    'Informes detalhados de avanço de alunos',
-    'Dashboard administrativo para enviar ao SEPE',
-    'Carga inicial de até 20 cursos e dos usuários',
-    'Treinamento de 2 horas para administradores',
+    'Plataforma Moodle 4.5 con dominio propio y certificado SSL',
+    'Tema gráfico personalizado con la identidad del cliente',
+    'Informes detallados de avance de alumnos',
+    'Dashboard administrativo para enviar al SEPE',
+    'Carga inicial de hasta 20 cursos y de los usuarios',
+    'Formación de 2 horas para administradores',
   ],
-  naoIncluidos: [
-    'Compra do domínio',
-    'Gestão de certificado SEPE',
-    'Produção do conteúdo dos cursos',
-    'Hospedagem após os primeiros 12 meses',
+  noIncluidos: [
+    'Compra del dominio',
+    'Gestión del certificado SEPE',
+    'Producción del contenido de los cursos',
+    'Alojamiento después de los primeros 12 meses',
   ],
 };
 
-// [dia relativo, autor (e-mail), categoria, marco (índice), texto]
+// [día relativo, autor (e-mail), categoría, hito (índice), texto]
 const DIARIO = [
-  [-16, 'admin@taskly.local', 'reuniao', 0, 'Reunião de kickoff com Laura (AHK). Alinhado o objetivo: plataforma pronta para turmas de janeiro. Cliente pediu relatórios para o SEPE.'],
-  [-15, 'carla@taskly.local', 'avanco', 0, 'Catálogo de cursos e planos enviado por e-mail para a Laura.'],
-  [-14, 'joao@taskly.local', 'cliente', 1, 'Cliente aprovou o domínio "formacion-ahk". Compra do domínio fica com o cliente (fora do escopo).'],
-  [-13, 'joao@taskly.local', 'avanco', 1, 'DNS propagado e SSL instalado. Domínio respondendo normalmente.'],
-  [-12, 'joao@taskly.local', 'avanco', 2, 'Moodle 4.5 instalado e configurado (idioma espanhol, fuso Madrid). Acesso de administrador entregue ao cliente.'],
-  [-12, 'admin@taskly.local', 'cliente', null, 'Acordo de especificações v1 revisado com a Laura por telefone antes do envio.'],
-  [-9, 'maria@taskly.local', 'avanco', 3, 'Primeira proposta de layout pronta (azul institucional).'],
-  [-6, 'maria@taskly.local', 'avanco', 3, 'Segunda proposta pronta e as duas enviadas ao cliente.'],
-  [-4, 'admin@taskly.local', 'problema', 3, 'Cliente ainda não escolheu a proposta gráfica. Enviado lembrete; isso pode atrasar a aplicação do tema.'],
-  [-2, 'joao@taskly.local', 'avanco', 4, 'Começamos os informes de avanço de alunos. Aguardando o modelo de relatório do SEPE (tarefa do cliente).'],
-  [-1, 'admin@taskly.local', 'observacao', 3, 'Laura respondeu que decide a proposta até sexta. Mantido o prazo do tema.'],
+  [-16, 'admin@taskly.local', 'reunion', 0, 'Reunión de kickoff con Laura (AHK). Objetivo alineado: plataforma lista para los grupos de enero. El cliente pidió informes para el SEPE.'],
+  [-15, 'carla@taskly.local', 'avance', 0, 'Catálogo de cursos y planes enviado por e-mail a Laura.'],
+  [-14, 'joao@taskly.local', 'cliente', 1, 'El cliente aprobó el dominio "formacion-ahk". La compra del dominio queda a cargo del cliente (fuera del alcance).'],
+  [-13, 'joao@taskly.local', 'avance', 1, 'DNS propagado y SSL instalado. El dominio responde con normalidad.'],
+  [-12, 'joao@taskly.local', 'avance', 2, 'Moodle 4.5 instalado y configurado (idioma español, zona horaria de Madrid). Acceso de administrador entregado al cliente.'],
+  [-12, 'admin@taskly.local', 'cliente', null, 'Acuerdo de especificaciones v1 revisado con Laura por teléfono antes del envío.'],
+  [-9, 'maria@taskly.local', 'avance', 3, 'Primera propuesta de diseño lista (azul corporativo).'],
+  [-6, 'maria@taskly.local', 'avance', 3, 'Segunda propuesta lista y las dos enviadas al cliente.'],
+  [-4, 'admin@taskly.local', 'problema', 3, 'El cliente aún no ha elegido la propuesta gráfica. Enviado recordatorio; esto puede retrasar la aplicación del tema.'],
+  [-2, 'joao@taskly.local', 'avance', 4, 'Empezamos los informes de avance de alumnos. A la espera de la plantilla de informe del SEPE (tarea del cliente).'],
+  [-1, 'admin@taskly.local', 'observacion', 3, 'Laura respondió que decide la propuesta antes del viernes. Se mantiene el plazo del tema.'],
 ];
 
-export async function criarProjetoAHK({ porEmail, admin, emDias }) {
-  const equipe = [
-    ['joao@taskly.local', 'Back-end / Infraestrutura'],
-    ['maria@taskly.local', 'Design'],
+export async function crearProyectoAHK({ porEmail, admin, enDias }) {
+  const equipo = [
+    ['joao@taskly.local', 'Back-end / Infraestructura'],
+    ['maria@taskly.local', 'Diseño'],
     ['ana@taskly.local', 'Front-end'],
-    ['carla@taskly.local', 'Conteúdo'],
-    ['pedro@taskly.local', 'QA / Testes'],
+    ['carla@taskly.local', 'Contenido'],
+    ['pedro@taskly.local', 'QA / Pruebas'],
   ];
-  const projeto = await Projeto.create({
-    nome: 'Plataforma AHK',
-    cliente: 'AHK (cliente exemplo)',
-    descricao: 'Plataforma completa de formação em Moodle 4.5: domínio, tema gráfico, informes de alunos e dashboard para o SEPE.',
-    status: 'em_andamento',
-    responsavel: admin._id,
-    responsavelCliente: { nome: 'Laura Méndez', email: 'laura.mendez@example.com', cargo: 'Coordenadora de formação' },
-    integrantes: equipe.map(([email, funcao]) => ({ usuario: porEmail[email]._id, funcao })),
-    dataInicio: emDias(-16),
-    prazo: emDias(16),
+  const proyecto = await Proyecto.create({
+    nombre: 'Plataforma AHK',
+    cliente: 'AHK (cliente de ejemplo)',
+    descripcion: 'Plataforma completa de formación en Moodle 4.5: dominio, tema gráfico, informes de alumnos y dashboard para el SEPE.',
+    status: 'en_curso',
+    responsable: admin._id,
+    responsableCliente: { nombre: 'Laura Méndez', email: 'laura.mendez@example.com', cargo: 'Coordinadora de formación' },
+    integrantes: equipo.map(([email, funcion]) => ({ usuario: porEmail[email]._id, funcion })),
+    fechaInicio: enDias(-16),
+    plazo: enDias(16),
   });
 
-  const marcos = [];
-  let totalTarefas = 0;
-  for (const [i, [titulo, inicio, fim, tarefas]] of MARCOS.entries()) {
-    const marco = await Marco.create({ projeto: projeto._id, titulo, ordem: i + 1, dataInicio: emDias(inicio), dataFim: emDias(fim) });
-    marcos.push(marco);
-    const docs = tarefas.map(([t, lado, resp, status, prazo]) => ({
-      projeto: projeto._id,
-      marco: marco._id,
+  const hitos = [];
+  let totalTareas = 0;
+  for (const [i, [titulo, inicio, fin, tareas]] of HITOS.entries()) {
+    const hito = await Hito.create({ proyecto: proyecto._id, titulo, orden: i + 1, fechaInicio: enDias(inicio), fechaFin: enDias(fin) });
+    hitos.push(hito);
+    const docs = tareas.map(([t, lado, resp, status, plazo]) => ({
+      proyecto: proyecto._id,
+      hito: hito._id,
       titulo: t,
       lado,
-      responsavel: lado === A ? porEmail[resp]._id : undefined,
-      responsavelExterno: lado === C ? resp : '',
+      responsable: lado === A ? porEmail[resp]._id : undefined,
+      responsableExterno: lado === C ? resp : '',
       status,
-      prioridade: lado === C && status !== 'concluida' ? 'alta' : 'media',
-      prazo: emDias(prazo),
+      prioridad: lado === C && status !== 'completada' ? 'alta' : 'media',
+      plazo: enDias(plazo),
       horasEstimadas: lado === A ? 4 : 0,
-      horasGastas: lado === A && status === 'concluida' ? 4 : lado === A && status === 'em_andamento' ? 2 : 0,
-      concluidaEm: status === 'concluida' ? emDias(prazo) : undefined,
+      horasGastadas: lado === A && status === 'completada' ? 4 : lado === A && status === 'en_curso' ? 2 : 0,
+      completadaEn: status === 'completada' ? enDias(plazo) : undefined,
     }));
-    const criadas = await Tarefa.insertMany(docs);
-    // Histórico com datas do passado, para o diário mostrar cada coisa no dia em que aconteceu.
-    const historicos = criadas.map((t) => ({
-      tarefa: t._id,
-      projeto: projeto._id,
+    const creadas = await Tarea.insertMany(docs);
+    // Historial con fechas pasadas, para que el diario muestre cada cosa el día en que ocurrió.
+    const historiales = creadas.map((t) => ({
+      tarea: t._id,
+      proyecto: proyecto._id,
       usuario: admin._id,
-      acao: 'criou',
-      detalhes: { titulo: t.titulo },
-      createdAt: emDias(inicio - 1),
+      accion: 'creo',
+      detalles: { titulo: t.titulo },
+      createdAt: enDias(inicio - 1),
     }));
-    for (const t of criadas) {
-      if (t.status === 'a_fazer') continue;
-      const quem = t.responsavel || admin._id;
-      historicos.push({ tarefa: t._id, projeto: projeto._id, usuario: quem, acao: 'status', detalhes: { de: 'a_fazer', para: 'em_andamento' }, createdAt: emDias(Math.max(inicio, -16)) });
-      if (t.status === 'concluida') {
-        historicos.push({ tarefa: t._id, projeto: projeto._id, usuario: quem, acao: 'status', detalhes: { de: 'em_andamento', para: 'concluida' }, createdAt: t.concluidaEm });
+    for (const t of creadas) {
+      if (t.status === 'por_hacer') continue;
+      const quien = t.responsable || admin._id;
+      historiales.push({ tarea: t._id, proyecto: proyecto._id, usuario: quien, accion: 'status', detalles: { de: 'por_hacer', para: 'en_curso' }, createdAt: enDias(Math.max(inicio, -16)) });
+      if (t.status === 'completada') {
+        historiales.push({ tarea: t._id, proyecto: proyecto._id, usuario: quien, accion: 'status', detalles: { de: 'en_curso', para: 'completada' }, createdAt: t.completadaEn });
       }
     }
-    await Historico.insertMany(historicos, { timestamps: false });
-    totalTarefas += criadas.length;
+    await Historial.insertMany(historiales, { timestamps: false });
+    totalTareas += creadas.length;
   }
 
-  // Escopo v1 enviado, assinado pela Awakelab e aceito pelo cliente (fluxo real, e-mail em modo teste).
-  const rascunho = await abrirRascunho(admin, projeto._id);
-  await atualizarRascunho(admin, rascunho._id, ESCOPO);
-  const { linkTeste } = await enviarParaAssinatura(admin, rascunho._id);
-  await assinarPelaEmpresa(admin, rascunho._id, '127.0.0.1');
-  if (linkTeste) await concordarPublico(linkTeste.split('/').pop(), { ip: '203.0.113.10', navegador: 'Seed (exemplo)' });
-  // Ajusta as datas para parecer que aconteceu no início do projeto.
-  await Acordo.updateOne(
-    { _id: rascunho._id },
+  // Alcance v1 enviado, firmado por Awakelab y aceptado por el cliente (flujo real, e-mail en modo prueba).
+  const borrador = await abrirBorrador(admin, proyecto._id);
+  await actualizarBorrador(admin, borrador._id, ALCANCE);
+  const { linkPrueba } = await enviarParaFirma(admin, borrador._id);
+  await firmarPorEmpresa(admin, borrador._id, '127.0.0.1');
+  if (linkPrueba) await aceptarPublico(linkPrueba.split('/').pop(), { ip: '203.0.113.10', navegador: 'Seed (ejemplo)' });
+  // Ajusta las fechas para que parezca que ocurrió al inicio del proyecto.
+  await Acuerdo.updateOne(
+    { _id: borrador._id },
     {
-      enviadoEm: emDias(-12),
-      'assinaturaEmpresa.em': emDias(-12),
-      'assinaturaCliente.em': emDias(-11),
-      assinadoEm: emDias(-11),
-      'emails.0.enviadoEm': emDias(-12),
-      'emails.1.enviadoEm': emDias(-11),
+      enviadoEn: enDias(-12),
+      'firmaEmpresa.en': enDias(-12),
+      'firmaCliente.en': enDias(-11),
+      firmadoEn: enDias(-11),
+      'emails.0.enviadoEn': enDias(-12),
+      'emails.1.enviadoEn': enDias(-11),
     }
   );
-  await RegistroDiario.deleteMany({ projeto: projeto._id, tipo: 'sistema' });
+  await RegistroDiario.deleteMany({ proyecto: proyecto._id, tipo: 'sistema' });
   await RegistroDiario.insertMany([
-    { projeto: projeto._id, data: emDias(-12), tipo: 'sistema', categoria: 'cliente', texto: 'Acordo versão 1 enviado para Laura Méndez (laura.mendez@example.com) assinar.' },
-    { projeto: projeto._id, data: emDias(-12), tipo: 'sistema', categoria: 'cliente', texto: 'Admin Taskly assinou o acordo versão 1 pela Awakelab.' },
-    { projeto: projeto._id, data: emDias(-11), tipo: 'sistema', categoria: 'cliente', texto: 'Laura Méndez (cliente) concordou com o acordo versão 1 pelo e-mail.' },
-    { projeto: projeto._id, data: emDias(-11), tipo: 'sistema', categoria: 'cliente', texto: 'Acordo de especificações versão 1 assinado pelas duas partes.' },
+    { proyecto: proyecto._id, fecha: enDias(-12), tipo: 'sistema', categoria: 'cliente', texto: 'Acuerdo versión 1 enviado a Laura Méndez (laura.mendez@example.com) para que lo firme.' },
+    { proyecto: proyecto._id, fecha: enDias(-12), tipo: 'sistema', categoria: 'cliente', texto: 'Admin Taskly firmó el acuerdo versión 1 por Awakelab.' },
+    { proyecto: proyecto._id, fecha: enDias(-11), tipo: 'sistema', categoria: 'cliente', texto: 'Laura Méndez (cliente) aceptó el acuerdo versión 1 por e-mail.' },
+    { proyecto: proyecto._id, fecha: enDias(-11), tipo: 'sistema', categoria: 'cliente', texto: 'Acuerdo de especificaciones versión 1 firmado por las dos partes.' },
   ]);
 
   await RegistroDiario.insertMany(
-    DIARIO.map(([dia, autor, categoria, iMarco, texto]) => ({
-      projeto: projeto._id,
-      data: emDias(dia),
+    DIARIO.map(([dia, autor, categoria, iHito, texto]) => ({
+      proyecto: proyecto._id,
+      fecha: enDias(dia),
       autor: porEmail[autor]._id,
       categoria,
-      marco: iMarco === null ? undefined : marcos[iMarco]._id,
+      hito: iHito === null ? undefined : hitos[iHito]._id,
       texto,
       tipo: 'manual',
     }))
   );
 
-  return { projeto, tarefas: totalTarefas };
+  return { proyecto, tareas: totalTareas };
 }

@@ -1,30 +1,30 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { useAuth } from './context/AuthContext.jsx';
 import Layout from './components/Layout.jsx';
-import { Carregando } from './components/Elementos.jsx';
+import { Cargando } from './components/Elementos.jsx';
 import Login from './pages/Login.jsx';
-import Projetos from './pages/Projetos.jsx';
-import ProjetoDetalhe from './pages/ProjetoDetalhe.jsx';
-import MinhasTarefas from './pages/MinhasTarefas.jsx';
+import Proyectos from './pages/Proyectos.jsx';
+import ProyectoDetalle from './pages/ProyectoDetalle.jsx';
+import MisTareas from './pages/MisTareas.jsx';
 import Usuarios from './pages/Usuarios.jsx';
-import AcordoPublico from './pages/AcordoPublico.jsx';
+import AcuerdoPublico from './pages/AcuerdoPublico.jsx';
 
-function Protegida({ children, somenteAdmin = false }) {
-  const { usuario, carregando, ehAdmin } = useAuth();
-  if (carregando) return <Carregando />;
+function Protegida({ children, soloAdmin = false }) {
+  const { usuario, cargando, esAdmin } = useAuth();
+  if (cargando) return <Cargando />;
   if (!usuario) return <Navigate to="/login" replace />;
-  if (somenteAdmin && !ehAdmin) return <Navigate to="/projetos" replace />;
+  if (soloAdmin && !esAdmin) return <Navigate to="/proyectos" replace />;
   return children;
 }
 
 export default function App() {
-  const { usuario, carregando } = useAuth();
+  const { usuario, cargando } = useAuth();
 
   return (
     <Routes>
-      <Route path="/login" element={!carregando && usuario ? <Navigate to="/projetos" replace /> : <Login />} />
-      {/* Página pública: o cliente abre pelo link do e-mail, sem login */}
-      <Route path="/acordo/:token" element={<AcordoPublico />} />
+      <Route path="/login" element={!cargando && usuario ? <Navigate to="/proyectos" replace /> : <Login />} />
+      {/* Página pública: el cliente la abre desde el enlace del e-mail, sin login */}
+      <Route path="/acuerdo/:token" element={<AcuerdoPublico />} />
       <Route
         element={
           <Protegida>
@@ -32,19 +32,19 @@ export default function App() {
           </Protegida>
         }
       >
-        <Route path="/projetos" element={<Projetos />} />
-        <Route path="/projetos/:id" element={<ProjetoDetalhe />} />
-        <Route path="/minhas-tarefas" element={<MinhasTarefas />} />
+        <Route path="/proyectos" element={<Proyectos />} />
+        <Route path="/proyectos/:id" element={<ProyectoDetalle />} />
+        <Route path="/mis-tareas" element={<MisTareas />} />
         <Route
           path="/usuarios"
           element={
-            <Protegida somenteAdmin>
+            <Protegida soloAdmin>
               <Usuarios />
             </Protegida>
           }
         />
       </Route>
-      <Route path="*" element={<Navigate to="/projetos" replace />} />
+      <Route path="*" element={<Navigate to="/proyectos" replace />} />
     </Routes>
   );
 }

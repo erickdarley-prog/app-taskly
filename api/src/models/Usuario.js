@@ -1,52 +1,52 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
-export const PAPEIS = ['admin', 'equipe'];
+export const ROLES = ['admin', 'equipo'];
 
 const usuarioSchema = new mongoose.Schema(
   {
-    nome: { type: String, required: true, trim: true, maxlength: 120 },
+    nombre: { type: String, required: true, trim: true, maxlength: 120 },
     email: {
       type: String,
       required: true,
       unique: true,
       lowercase: true,
       trim: true,
-      match: [/^\S+@\S+\.\S+$/, 'E-mail inválido'],
+      match: [/^\S+@\S+\.\S+$/, 'E-mail no válido'],
     },
-    senha: { type: String, required: true, minlength: 6, select: false },
-    papel: { type: String, enum: PAPEIS, default: 'equipe' },
-    funcao: { type: String, trim: true, maxlength: 80, default: '' },
-    ativo: { type: Boolean, default: true },
-    // Conta de e-mail usada para ENVIAR e-mails em nome deste usuário (ex.: acordo para o cliente).
+    contrasena: { type: String, required: true, minlength: 6, select: false },
+    rol: { type: String, enum: ROLES, default: 'equipo' },
+    funcion: { type: String, trim: true, maxlength: 80, default: '' },
+    activo: { type: Boolean, default: true },
+    // Cuenta de e-mail usada para ENVIAR e-mails en nombre de este usuario (p. ej.: acuerdo para el cliente).
     emailEnvio: {
       host: { type: String, trim: true, default: '' },
-      porta: { type: Number, default: 587 },
-      seguro: { type: Boolean, default: false }, // true = SSL direto (porta 465)
+      puerto: { type: Number, default: 587 },
+      seguro: { type: Boolean, default: false }, // true = SSL directo (puerto 465)
       usuario: { type: String, trim: true, default: '' },
-      senhaCifrada: { type: String, default: '', select: false },
-      nomeRemetente: { type: String, trim: true, default: '' },
+      contrasenaCifrada: { type: String, default: '', select: false },
+      nombreRemitente: { type: String, trim: true, default: '' },
     },
   },
   { timestamps: true }
 );
 
-usuarioSchema.pre('save', async function criptografarSenha(next) {
-  if (!this.isModified('senha')) return next();
-  this.senha = await bcrypt.hash(this.senha, 10);
+usuarioSchema.pre('save', async function cifrarContrasena(next) {
+  if (!this.isModified('contrasena')) return next();
+  this.contrasena = await bcrypt.hash(this.contrasena, 10);
   next();
 });
 
-usuarioSchema.methods.conferirSenha = function conferirSenha(senha) {
-  return bcrypt.compare(senha, this.senha);
+usuarioSchema.methods.comprobarContrasena = function comprobarContrasena(contrasena) {
+  return bcrypt.compare(contrasena, this.contrasena);
 };
 
 usuarioSchema.set('toJSON', {
   transform(_doc, ret) {
-    delete ret.senha;
+    delete ret.contrasena;
     delete ret.__v;
     if (ret.emailEnvio) {
-      delete ret.emailEnvio.senhaCifrada;
+      delete ret.emailEnvio.contrasenaCifrada;
       ret.emailEnvio.configurado = Boolean(ret.emailEnvio.host && ret.emailEnvio.usuario);
     }
     return ret;

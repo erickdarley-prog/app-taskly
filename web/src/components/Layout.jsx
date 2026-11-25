@@ -3,108 +3,108 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { CheckSquare, FolderKanban, LogOut, Menu, Plus, Users, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Avatar } from './Elementos.jsx';
-import MinhaConta from './MinhaConta.jsx';
+import MiCuenta from './MiCuenta.jsx';
 import Chat from './Chat.jsx';
 
-const LOGO_AWAKELAB_ESCURO = 'https://media.awakelab.world/MARCA_AWK26/awakelab_logo_fondo-oscuro_transparente.png';
+const LOGO_AWAKELAB_OSCURO = 'https://media.awakelab.world/MARCA_AWK26/awakelab_logo_fondo-oscuro_transparente.png';
 const ISOTIPO_AWAKELAB_CLARO = 'https://media.awakelab.world/MARCA_AWK26/awakelab_isotipo_fondo-blanco_transparente.png';
 
-// Subtítulo do topo conforme a tela aberta
-function secaoAtual(caminho) {
-  if (caminho.startsWith('/projetos/')) return 'Projeto';
-  if (caminho.startsWith('/minhas-tarefas')) return 'Minhas tarefas';
-  if (caminho.startsWith('/usuarios')) return 'Usuários';
-  return 'Projetos de clientes';
+// Subtítulo de la cabecera según la pantalla abierta
+function seccionActual(ruta) {
+  if (ruta.startsWith('/proyectos/')) return 'Proyecto';
+  if (ruta.startsWith('/mis-tareas')) return 'Mis tareas';
+  if (ruta.startsWith('/usuarios')) return 'Usuarios';
+  return 'Proyectos de clientes';
 }
 
 export default function Layout() {
-  const { usuario, ehAdmin, sair } = useAuth();
+  const { usuario, esAdmin, salir } = useAuth();
   const { pathname } = useLocation();
-  const [contaAberta, setContaAberta] = useState(false);
-  const [menuAberto, setMenuAberto] = useState(false);
+  const [cuentaAbierta, setCuentaAbierta] = useState(false);
+  const [menuAbierto, setMenuAbierto] = useState(false);
 
-  const link = ({ isActive }) => `menu-link${isActive ? ' ativo' : ''}`;
+  const link = ({ isActive }) => `menu-link${isActive ? ' activo' : ''}`;
 
   return (
     <div className="app">
-      <header className="barra-topo">
+      <header className="barra-cabecera">
         <button
           type="button"
-          className="barra-topo-menu"
-          onClick={() => setMenuAberto((v) => !v)}
-          aria-label={menuAberto ? 'Fechar menu' : 'Abrir menu'}
-          aria-expanded={menuAberto}
+          className="barra-cabecera-menu"
+          onClick={() => setMenuAbierto((v) => !v)}
+          aria-label={menuAbierto ? 'Cerrar menú' : 'Abrir menú'}
+          aria-expanded={menuAbierto}
         >
-          {menuAberto ? <X size={22} /> : <Menu size={22} />}
+          {menuAbierto ? <X size={22} /> : <Menu size={22} />}
         </button>
         <MarcaAwakelab />
-        <span className="barra-topo-divisor" aria-hidden="true" />
-        <div className="barra-topo-titulo">
+        <span className="barra-cabecera-divisor" aria-hidden="true" />
+        <div className="barra-cabecera-titulo">
           <strong>Taskly</strong>
-          <small>{secaoAtual(pathname)}</small>
+          <small>{seccionActual(pathname)}</small>
         </div>
-        <div className="barra-topo-usuario">
-          <button type="button" className="usuario-botao" onClick={() => setContaAberta(true)} title="Minha conta">
-            <Avatar nome={usuario?.nome} />
+        <div className="barra-cabecera-usuario">
+          <button type="button" className="usuario-boton" onClick={() => setCuentaAbierta(true)} title="Mi cuenta">
+            <Avatar nombre={usuario?.nombre} />
             <span>
-              <strong>{usuario?.nome}</strong>
-              <small>{ehAdmin ? 'Administrador' : usuario?.funcao || 'Equipe'}</small>
+              <strong>{usuario?.nombre}</strong>
+              <small>{esAdmin ? 'Administrador' : usuario?.funcion || 'Equipo'}</small>
             </span>
           </button>
-          <button type="button" className="barra-topo-sair" onClick={sair} aria-label="Sair" title="Sair">
+          <button type="button" className="barra-cabecera-salir" onClick={salir} aria-label="Salir" title="Salir">
             <LogOut size={20} />
           </button>
         </div>
       </header>
 
-      <div className="app-corpo">
-        <aside className={`menu-lateral${menuAberto ? ' aberto' : ''}`} onClick={() => setMenuAberto(false)}>
+      <div className="app-cuerpo">
+        <aside className={`menu-lateral${menuAbierto ? ' abierto' : ''}`} onClick={() => setMenuAbierto(false)}>
           <nav className="menu">
-            <NavLink to="/projetos" className={link}>
-              <FolderKanban size={19} /> Projetos
+            <NavLink to="/proyectos" className={link}>
+              <FolderKanban size={19} /> Proyectos
             </NavLink>
-            {ehAdmin && (
-              <NavLink to="/projetos?novo=1" className={() => 'menu-link'}>
-                <Plus size={19} /> Novo projeto
+            {esAdmin && (
+              <NavLink to="/proyectos?nuevo=1" className={() => 'menu-link'}>
+                <Plus size={19} /> Nuevo proyecto
               </NavLink>
             )}
-            <NavLink to="/minhas-tarefas" className={link}>
-              <CheckSquare size={19} /> Minhas tarefas
+            <NavLink to="/mis-tareas" className={link}>
+              <CheckSquare size={19} /> Mis tareas
             </NavLink>
-            {ehAdmin && (
+            {esAdmin && (
               <NavLink to="/usuarios" className={link}>
-                <Users size={19} /> Usuários
+                <Users size={19} /> Usuarios
               </NavLink>
             )}
           </nav>
-          <div className="menu-rodape">
+          <div className="menu-pie">
             <img src={ISOTIPO_AWAKELAB_CLARO} alt="" width="30" height="30" onError={(e) => (e.currentTarget.style.display = 'none')} />
             <span>
               <strong>Taskly</strong>
-              <small>gestão de projetos · Awakelab</small>
+              <small>gestión de proyectos · Awakelab</small>
             </span>
           </div>
         </aside>
 
-        <main className="conteudo">
+        <main className="contenido">
           <Outlet />
         </main>
       </div>
 
-      <MinhaConta aberto={contaAberta} aoFechar={() => setContaAberta(false)} />
+      <MiCuenta abierto={cuentaAbierta} alCerrar={() => setCuentaAbierta(false)} />
       <Chat />
     </div>
   );
 }
 
-// Logo da Awakelab para fundos escuros; se a imagem não carregar (sem internet), mostra o nome em texto.
+// Logo de Awakelab para fondos oscuros; si la imagen no carga (sin internet), muestra el nombre en texto.
 export function MarcaAwakelab({ altura = 30 }) {
-  const [falhou, setFalhou] = useState(false);
-  if (falhou) return <span className="marca-texto">awakelab</span>;
-  return <img className="marca-awakelab" src={LOGO_AWAKELAB_ESCURO} alt="Awakelab" style={{ height: altura }} onError={() => setFalhou(true)} />;
+  const [fallo, setFallo] = useState(false);
+  if (fallo) return <span className="marca-texto">awakelab</span>;
+  return <img className="marca-awakelab" src={LOGO_AWAKELAB_OSCURO} alt="Awakelab" style={{ height: altura }} onError={() => setFallo(true)} />;
 }
 
-// Marca do Taskly (ícone + nome)
+// Marca de Taskly (icono + nombre)
 export function Logo() {
   return (
     <span className="logo">

@@ -1,18 +1,18 @@
 import { useEffect, useRef } from 'react';
 
-// Avisa as telas abertas que algo mudou (ex.: o assistente criou um projeto).
-const EVENTO = 'taskly:dados-alterados';
+// Avisa a las pantallas abiertas de que algo cambió (p. ej.: el asistente creó un proyecto).
+const EVENTO = 'taskly:datos-modificados';
 
-export function avisarDadosAlterados() {
+export function avisarDatosModificados() {
   window.dispatchEvent(new Event(EVENTO));
 }
 
-export function useAoAlterarDados(callback) {
+export function useAlModificarDatos(callback) {
   const ref = useRef(callback);
   ref.current = callback;
   useEffect(() => {
-    const ouvir = () => ref.current?.();
-    window.addEventListener(EVENTO, ouvir);
-    return () => window.removeEventListener(EVENTO, ouvir);
+    const escuchar = () => ref.current?.();
+    window.addEventListener(EVENTO, escuchar);
+    return () => window.removeEventListener(EVENTO, escuchar);
   }, []);
 }

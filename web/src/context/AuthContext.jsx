@@ -1,37 +1,37 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { api, definirAoExpirarSessao, token } from '../api/cliente.js';
+import { api, definirAlExpirarSesion, token } from '../api/cliente.js';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [usuario, setUsuario] = useState(null);
-  const [carregando, setCarregando] = useState(Boolean(token.ler()));
+  const [cargando, setCargando] = useState(Boolean(token.leer()));
 
-  const sair = useCallback(() => {
-    token.limpar();
+  const salir = useCallback(() => {
+    token.limpiar();
     setUsuario(null);
   }, []);
 
   useEffect(() => {
-    definirAoExpirarSessao(sair);
-    if (!token.ler()) return;
+    definirAlExpirarSesion(salir);
+    if (!token.leer()) return;
     api
       .get('/auth/me')
       .then((d) => setUsuario(d.usuario))
-      .catch(() => sair())
-      .finally(() => setCarregando(false));
-  }, [sair]);
+      .catch(() => salir())
+      .finally(() => setCargando(false));
+  }, [salir]);
 
-  const entrar = useCallback(async (email, senha) => {
-    const d = await api.post('/auth/login', { email, senha });
-    token.salvar(d.token);
+  const entrar = useCallback(async (email, contrasena) => {
+    const d = await api.post('/auth/login', { email, contrasena });
+    token.guardar(d.token);
     setUsuario(d.usuario);
     return d.usuario;
   }, []);
 
   const valor = useMemo(
-    () => ({ usuario, carregando, entrar, sair, ehAdmin: usuario?.papel === 'admin' }),
-    [usuario, carregando, entrar, sair]
+    () => ({ usuario, cargando, entrar, salir, esAdmin: usuario?.rol === 'admin' }),
+    [usuario, cargando, entrar, salir]
   );
 
   return <AuthContext.Provider value={valor}>{children}</AuthContext.Provider>;

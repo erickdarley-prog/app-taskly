@@ -1,24 +1,24 @@
 import { Router } from 'express';
 import { Usuario } from '../models/Usuario.js';
-import { autenticar, gerarToken } from '../middlewares/auth.js';
-import { ErroHttp, rota } from '../utils/http.js';
-import { enviarEmailDeTeste, obterConfigEmail, salvarConfigEmail } from '../servicos/email.js';
+import { autenticar, generarToken } from '../middlewares/auth.js';
+import { ErrorHttp, ruta } from '../utils/http.js';
+import { enviarEmailDePrueba, obtenerConfigEmail, guardarConfigEmail } from '../servicios/email.js';
 
 const router = Router();
 
 router.post(
   '/login',
-  rota(async (req, res) => {
+  ruta(async (req, res) => {
     const email = String(req.body?.email || '').trim().toLowerCase();
-    const senha = String(req.body?.senha || '');
-    if (!email || !senha) throw new ErroHttp(400, 'Informe e-mail e senha');
+    const contrasena = String(req.body?.contrasena || '');
+    if (!email || !contrasena) throw new ErrorHttp(400, 'Indica e-mail y contraseña');
 
-    const usuario = await Usuario.findOne({ email }).select('+senha');
-    if (!usuario || !usuario.ativo || !(await usuario.conferirSenha(senha))) {
-      throw new ErroHttp(401, 'E-mail ou senha incorretos');
+    const usuario = await Usuario.findOne({ email }).select('+contrasena');
+    if (!usuario || !usuario.activo || !(await usuario.comprobarContrasena(contrasena))) {
+      throw new ErrorHttp(401, 'E-mail o contraseña incorrectos');
     }
 
-    res.json({ token: gerarToken(usuario), usuario: usuario.toJSON() });
+    res.json({ token: generarToken(usuario), usuario: usuario.toJSON() });
   })
 );
 
@@ -27,26 +27,26 @@ router.get('/me', autenticar, (req, res) => {
 });
 
 router.patch(
-  '/me/senha',
+  '/me/contrasena',
   autenticar,
-  rota(async (req, res) => {
-    const { senhaAtual, novaSenha } = req.body || {};
-    if (!senhaAtual || !novaSenha) throw new ErroHttp(400, 'Informe a senha atual e a nova senha');
-    if (String(novaSenha).length < 6) throw new ErroHttp(400, 'A nova senha precisa ter ao menos 6 caracteres');
+  ruta(async (req, res) => {
+    const { contrasenaActual, nuevaContrasena } = req.body || {};
+    if (!contrasenaActual || !nuevaContrasena) throw new ErrorHttp(400, 'Indica la contraseña actual y la nueva');
+    if (String(nuevaContrasena).length < 6) throw new ErrorHttp(400, 'La nueva contraseña debe tener al menos 6 caracteres');
 
-    const usuario = await Usuario.findById(req.usuario._id).select('+senha');
-    if (!(await usuario.conferirSenha(String(senhaAtual)))) {
-      throw new ErroHttp(400, 'Senha atual incorreta');
+    const usuario = await Usuario.findById(req.usuario._id).select('+contrasena');
+    if (!(await usuario.comprobarContrasena(String(contrasenaActual)))) {
+      throw new ErrorHttp(400, 'Contraseña actual incorrecta');
     }
-    usuario.senha = String(novaSenha);
+    usuario.contrasena = String(nuevaContrasena);
     await usuario.save();
     res.json({ ok: true });
   })
 );
 
-// E-mail de envio do próprio usuário (usado para mandar o acordo ao cliente)
-router.get('/me/email', autenticar, rota(async (req, res) => res.json(await obterConfigEmail(req.usuario))));
-router.put('/me/email', autenticar, rota(async (req, res) => res.json(await salvarConfigEmail(req.usuario, req.body))));
-router.post('/me/email/teste', autenticar, rota(async (req, res) => res.json(await enviarEmailDeTeste(req.usuario))));
+// E-mail de envío del propio usuario (se usa para mandar el acuerdo al cliente)
+router.get('/me/email', autenticar, ruta(async (req, res) => res.json(await obtenerConfigEmail(req.usuario))));
+router.put('/me/email', autenticar, ruta(async (req, res) => res.json(await guardarConfigEmail(req.usuario, req.body))));
+router.post('/me/email/prueba', autenticar, ruta(async (req, res) => res.json(await enviarEmailDePrueba(req.usuario))));
 
 export default router;

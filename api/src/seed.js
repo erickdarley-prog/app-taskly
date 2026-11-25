@@ -1,185 +1,190 @@
-// Cria dados FAKE para teste. Apaga tudo o que estiver no banco "taskly"!
+// Crea datos FALSOS de prueba. ¡Borra todo lo que haya en la base de datos "taskly"!
 // Uso: npm run seed
-import { conectarBanco, desconectarBanco } from './config/db.js';
+import mongoose from 'mongoose';
+import { conectarBd, desconectarBd } from './config/db.js';
 import { Usuario } from './models/Usuario.js';
-import { Projeto } from './models/Projeto.js';
-import { Tarefa } from './models/Tarefa.js';
-import { Historico } from './models/Historico.js';
-import { Conversa } from './models/Conversa.js';
-import { Marco } from './models/Marco.js';
-import { Acordo } from './models/Acordo.js';
+import { Proyecto } from './models/Proyecto.js';
+import { Tarea } from './models/Tarea.js';
+import { Historial } from './models/Historial.js';
+import { Conversacion } from './models/Conversacion.js';
+import { Hito } from './models/Hito.js';
+import { Acuerdo } from './models/Acuerdo.js';
 import { RegistroDiario } from './models/RegistroDiario.js';
-import { criarProjetoAHK } from './seed-ahk.js';
-import { Anexo } from './models/Anexo.js';
-import { criarAnexosDeExemplo, limparUploads } from './seed-anexos.js';
+import { crearProyectoAHK } from './seed-ahk.js';
+import { Adjunto } from './models/Adjunto.js';
+import { crearAdjuntosDeEjemplo, limpiarUploads } from './seed-adjuntos.js';
 
 const DIA = 24 * 60 * 60 * 1000;
-const hoje = new Date();
-hoje.setHours(12, 0, 0, 0);
-const emDias = (n) => new Date(hoje.getTime() + n * DIA);
+const hoy = new Date();
+hoy.setHours(12, 0, 0, 0);
+const enDias = (n) => new Date(hoy.getTime() + n * DIA);
 
-// Gerador pseudoaleatório fixo, para o seed gerar sempre os mesmos dados.
-let semente = 42;
-const aleatorio = () => ((semente = (semente * 16807) % 2147483647) - 1) / 2147483646;
-const escolherUm = (lista) => lista[Math.floor(aleatorio() * lista.length)];
+// Generador pseudoaleatorio fijo, para que el seed genere siempre los mismos datos.
+let semilla = 42;
+const aleatorio = () => ((semilla = (semilla * 16807) % 2147483647) - 1) / 2147483646;
+const elegirUno = (lista) => lista[Math.floor(aleatorio() * lista.length)];
 
-const pessoas = [
-  { nome: 'Admin Taskly', email: 'admin@taskly.local', senha: 'admin123', papel: 'admin', funcao: 'Gestor de projetos' },
-  { nome: 'Ana Souza', email: 'ana@taskly.local', senha: '123456', papel: 'equipe', funcao: 'Front-end' },
-  { nome: 'João Lima', email: 'joao@taskly.local', senha: '123456', papel: 'equipe', funcao: 'Back-end' },
-  { nome: 'Maria Costa', email: 'maria@taskly.local', senha: '123456', papel: 'equipe', funcao: 'Design' },
-  { nome: 'Pedro Alves', email: 'pedro@taskly.local', senha: '123456', papel: 'equipe', funcao: 'QA / Testes' },
-  { nome: 'Carla Mendes', email: 'carla@taskly.local', senha: '123456', papel: 'equipe', funcao: 'Conteúdo' },
+const personas = [
+  { nombre: 'Admin Taskly', email: 'admin@taskly.local', contrasena: 'admin123', rol: 'admin', funcion: 'Gestor de proyectos' },
+  { nombre: 'Ana Souza', email: 'ana@taskly.local', contrasena: '123456', rol: 'equipo', funcion: 'Front-end' },
+  { nombre: 'João Lima', email: 'joao@taskly.local', contrasena: '123456', rol: 'equipo', funcion: 'Back-end' },
+  { nombre: 'Maria Costa', email: 'maria@taskly.local', contrasena: '123456', rol: 'equipo', funcion: 'Diseño' },
+  { nombre: 'Pedro Alves', email: 'pedro@taskly.local', contrasena: '123456', rol: 'equipo', funcion: 'QA / Pruebas' },
+  { nombre: 'Carla Mendes', email: 'carla@taskly.local', contrasena: '123456', rol: 'equipo', funcion: 'Contenido' },
 ];
 
-const projetosFake = [
+const proyectosFake = [
   {
-    nome: 'Portal do Aluno',
-    cliente: 'Escola Horizonte',
-    descricao: 'Novo portal para alunos acessarem cursos, notas e certificados.',
-    status: 'em_andamento',
-    contatoCliente: { nome: 'Rafael Torres', email: 'rafael.torres@example.com', cargo: 'Diretor pedagógico' },
+    nombre: 'Portal del Alumno',
+    cliente: 'Colegio Horizonte',
+    descripcion: 'Nuevo portal para que los alumnos accedan a cursos, notas y certificados.',
+    status: 'en_curso',
+    contactoCliente: { nombre: 'Rafael Torres', email: 'rafael.torres@example.com', cargo: 'Director pedagógico' },
     inicio: -30,
-    prazo: 25,
-    equipe: ['ana@taskly.local', 'joao@taskly.local', 'maria@taskly.local', 'pedro@taskly.local'],
-    tarefas: [
-      'Definir arquitetura da API', 'Modelar banco de dados', 'Criar tela de login', 'Layout da home',
-      'Protótipo no Figma', 'Endpoint de cursos', 'Endpoint de notas', 'Tela de certificados',
-      'Testes de login', 'Testes de responsividade', 'Integração com e-mail', 'Página de perfil',
-      'Ícones e ilustrações', 'Revisar acessibilidade', 'Deploy em homologação',
+    plazo: 25,
+    equipo: ['ana@taskly.local', 'joao@taskly.local', 'maria@taskly.local', 'pedro@taskly.local'],
+    tareas: [
+      'Definir la arquitectura de la API', 'Modelar la base de datos', 'Crear pantalla de login', 'Diseño de la home',
+      'Prototipo en Figma', 'Endpoint de cursos', 'Endpoint de notas', 'Pantalla de certificados',
+      'Pruebas de login', 'Pruebas de responsive', 'Integración con e-mail', 'Página de perfil',
+      'Iconos e ilustraciones', 'Revisar accesibilidad', 'Despliegue en preproducción',
     ],
   },
   {
-    nome: 'Curso Segurança no Trabalho',
-    cliente: 'Indústria Atlas',
-    descricao: 'Curso e-learning de 20 horas em 4 módulos, com avaliações.',
-    status: 'em_andamento',
-    contatoCliente: { nome: 'Sônia Prado', email: 'sonia.prado@example.com', cargo: 'RH' },
+    nombre: 'Curso Seguridad en el Trabajo',
+    cliente: 'Industria Atlas',
+    descripcion: 'Curso e-learning de 20 horas en 4 módulos, con evaluaciones.',
+    status: 'en_curso',
+    contactoCliente: { nombre: 'Sônia Prado', email: 'sonia.prado@example.com', cargo: 'RH' },
     inicio: -14,
-    prazo: 10,
-    equipe: ['carla@taskly.local', 'maria@taskly.local', 'ana@taskly.local'],
-    tarefas: [
-      'Roteiro do módulo 1', 'Roteiro do módulo 2', 'Roteiro do módulo 3', 'Roteiro do módulo 4',
-      'Design dos slides', 'Gravação de narração', 'Montagem SCORM', 'Questionários de avaliação',
-      'Revisão pedagógica', 'Revisão ortográfica',
+    plazo: 10,
+    equipo: ['carla@taskly.local', 'maria@taskly.local', 'ana@taskly.local'],
+    tareas: [
+      'Guion del módulo 1', 'Guion del módulo 2', 'Guion del módulo 3', 'Guion del módulo 4',
+      'Diseño de las diapositivas', 'Grabación de la locución', 'Montaje SCORM', 'Cuestionarios de evaluación',
+      'Revisión pedagógica', 'Revisión ortográfica',
     ],
   },
   {
-    nome: 'App de Inventário',
+    nombre: 'App de Inventario',
     cliente: 'Logística Rápida',
-    descricao: 'Aplicativo interno para controle de estoque por leitura de código de barras.',
-    status: 'planejamento',
-    contatoCliente: { nome: 'Marcos Lima', email: 'marcos.lima@example.com', cargo: 'Gerente de operações' },
+    descripcion: 'Aplicación interna para el control de stock mediante lectura de códigos de barras.',
+    status: 'planificacion',
+    contactoCliente: { nombre: 'Marcos Lima', email: 'marcos.lima@example.com', cargo: 'Gerente de operaciones' },
     inicio: 3,
-    prazo: 60,
-    equipe: ['joao@taskly.local', 'pedro@taskly.local'],
-    tarefas: ['Levantamento de requisitos', 'Escolher leitor de código de barras', 'Modelo de dados', 'Plano de testes'],
+    plazo: 60,
+    equipo: ['joao@taskly.local', 'pedro@taskly.local'],
+    tareas: ['Toma de requisitos', 'Elegir lector de código de barras', 'Modelo de datos', 'Plan de pruebas'],
   },
 ];
 
 async function main() {
-  await conectarBanco();
+  await conectarBd();
 
   await Promise.all([
-    Historico.deleteMany({}),
-    Tarefa.deleteMany({}),
-    Projeto.deleteMany({}),
+    Historial.deleteMany({}),
+    Tarea.deleteMany({}),
+    Proyecto.deleteMany({}),
     Usuario.deleteMany({}),
-    Conversa.deleteMany({}),
-    Marco.deleteMany({}),
-    Acordo.deleteMany({}),
+    Conversacion.deleteMany({}),
+    Hito.deleteMany({}),
+    Acuerdo.deleteMany({}),
     RegistroDiario.deleteMany({}),
-    Anexo.deleteMany({}),
-    limparUploads(),
+    Adjunto.deleteMany({}),
+    limpiarUploads(),
   ]);
+  // Colecciones de la versión anterior del proyecto (en portugués), que ya no se usan
+  for (const nombre of ['projetos', 'tarefas', 'historicos', 'conversas', 'marcos', 'acordos', 'anexos']) {
+    await mongoose.connection.db.dropCollection(nombre).catch(() => {});
+  }
 
   const usuarios = [];
-  for (const p of pessoas) usuarios.push(await Usuario.create(p));
+  for (const p of personas) usuarios.push(await Usuario.create(p));
   const porEmail = Object.fromEntries(usuarios.map((u) => [u.email, u]));
   const admin = porEmail['admin@taskly.local'];
 
-  let totalTarefas = 0;
-  for (const pf of projetosFake) {
-    const integrantes = pf.equipe.map((email) => ({ usuario: porEmail[email]._id, funcao: porEmail[email].funcao }));
-    const projeto = await Projeto.create({
-      nome: pf.nome,
+  let totalTareas = 0;
+  for (const pf of proyectosFake) {
+    const integrantes = pf.equipo.map((email) => ({ usuario: porEmail[email]._id, funcion: porEmail[email].funcion }));
+    const proyecto = await Proyecto.create({
+      nombre: pf.nombre,
       cliente: pf.cliente,
-      descricao: pf.descricao,
+      descripcion: pf.descripcion,
       status: pf.status,
-      responsavel: admin._id,
+      responsable: admin._id,
       integrantes,
-      dataInicio: emDias(pf.inicio),
-      prazo: emDias(pf.prazo),
-      responsavelCliente: pf.contatoCliente,
+      fechaInicio: enDias(pf.inicio),
+      plazo: enDias(pf.plazo),
+      responsableCliente: pf.contactoCliente,
     });
 
-    // Divide o projeto em 3 marcos, com as tarefas distribuídas entre eles.
-    const duracao = pf.prazo - pf.inicio;
-    const fases = ['Planejamento', 'Execução', 'Entrega e validação'];
-    const marcos = await Marco.insertMany(
+    // Divide el proyecto en 3 hitos, con las tareas repartidas entre ellos.
+    const duracion = pf.plazo - pf.inicio;
+    const fases = ['Planificación', 'Ejecución', 'Entrega y validación'];
+    const hitos = await Hito.insertMany(
       fases.map((titulo, i) => ({
-        projeto: projeto._id,
+        proyecto: proyecto._id,
         titulo,
-        ordem: i + 1,
-        dataInicio: emDias(pf.inicio + Math.round((duracao * i) / 3)),
-        dataFim: emDias(pf.inicio + Math.round((duracao * (i + 1)) / 3)),
+        orden: i + 1,
+        fechaInicio: enDias(pf.inicio + Math.round((duracion * i) / 3)),
+        fechaFin: enDias(pf.inicio + Math.round((duracion * (i + 1)) / 3)),
       }))
     );
 
-    const tarefas = pf.tarefas.map((titulo, i) => {
-      const progresso = pf.status === 'planejamento' ? 0 : aleatorio();
-      const status = progresso > 0.55 ? 'concluida' : progresso > 0.3 ? 'em_andamento' : 'a_fazer';
-      const horasEstimadas = escolherUm([2, 4, 6, 8, 12, 16]);
-      const fator = status === 'concluida' ? 0.7 + aleatorio() * 0.6 : status === 'em_andamento' ? aleatorio() * 0.8 : 0;
-      // Algumas tarefas abertas ficam com prazo vencido, para aparecerem como atrasadas.
-      const atrasar = pf.status !== 'planejamento' && status !== 'concluida' && aleatorio() < 0.3;
-      let prazo;
-      if (status === 'concluida') prazo = emDias(pf.inicio + 3 + i);
-      else if (atrasar) prazo = emDias(-1 - Math.floor(aleatorio() * 5));
-      else prazo = emDias(Math.max(pf.inicio, 0) + 2 + i * 2);
+    const tareas = pf.tareas.map((titulo, i) => {
+      const progreso = pf.status === 'planificacion' ? 0 : aleatorio();
+      const status = progreso > 0.55 ? 'completada' : progreso > 0.3 ? 'en_curso' : 'por_hacer';
+      const horasEstimadas = elegirUno([2, 4, 6, 8, 12, 16]);
+      const factor = status === 'completada' ? 0.7 + aleatorio() * 0.6 : status === 'en_curso' ? aleatorio() * 0.8 : 0;
+      // Algunas tareas abiertas quedan con el plazo vencido, para que aparezcan como atrasadas.
+      const atrasar = pf.status !== 'planificacion' && status !== 'completada' && aleatorio() < 0.3;
+      let plazo;
+      if (status === 'completada') plazo = enDias(pf.inicio + 3 + i);
+      else if (atrasar) plazo = enDias(-1 - Math.floor(aleatorio() * 5));
+      else plazo = enDias(Math.max(pf.inicio, 0) + 2 + i * 2);
       return {
-        projeto: projeto._id,
+        proyecto: proyecto._id,
         titulo,
-        marco: marcos[Math.min(2, Math.floor((i * 3) / pf.tarefas.length))]._id,
+        hito: hitos[Math.min(2, Math.floor((i * 3) / pf.tareas.length))]._id,
         lado: 'awakelab',
-        descricao: `Tarefa de teste do projeto ${pf.nome}.`,
-        responsavel: integrantes[i % integrantes.length].usuario,
+        descripcion: `Tarea de prueba del proyecto ${pf.nombre}.`,
+        responsable: integrantes[i % integrantes.length].usuario,
         status,
-        prioridade: escolherUm(['baixa', 'media', 'media', 'alta']),
-        prazo,
+        prioridad: elegirUno(['baja', 'media', 'media', 'alta']),
+        plazo,
         horasEstimadas,
-        horasGastas: Math.round(horasEstimadas * fator * 10) / 10,
-        concluidaEm: status === 'concluida' ? emDias(-Math.floor(aleatorio() * 10)) : undefined,
+        horasGastadas: Math.round(horasEstimadas * factor * 10) / 10,
+        completadaEn: status === 'completada' ? enDias(-Math.floor(aleatorio() * 10)) : undefined,
       };
     });
-    const criadas = await Tarefa.insertMany(tarefas);
-    await Historico.insertMany(
-      criadas.map((t) => ({
-        tarefa: t._id,
-        projeto: projeto._id,
+    const creadas = await Tarea.insertMany(tareas);
+    await Historial.insertMany(
+      creadas.map((t) => ({
+        tarea: t._id,
+        proyecto: proyecto._id,
         usuario: admin._id,
-        acao: 'criou',
-        detalhes: { titulo: t.titulo },
-        createdAt: emDias(Math.min(pf.inicio, 0)),
+        accion: 'creo',
+        detalles: { titulo: t.titulo },
+        createdAt: enDias(Math.min(pf.inicio, 0)),
       })),
       { timestamps: false }
     );
-    totalTarefas += criadas.length;
+    totalTareas += creadas.length;
   }
 
-  const ahk = await criarProjetoAHK({ porEmail, admin, emDias });
-  totalTarefas += ahk.tarefas;
-  const totalAnexos = await criarAnexosDeExemplo(ahk.projeto, porEmail, emDias);
+  const ahk = await crearProyectoAHK({ porEmail, admin, enDias });
+  totalTareas += ahk.tareas;
+  const totalAdjuntos = await crearAdjuntosDeEjemplo(ahk.proyecto, porEmail, enDias);
 
-  console.log(`\nSeed concluído: ${usuarios.length} usuários, ${projetosFake.length + 1} projetos, ${totalTarefas} tarefas.`);
-  console.log(`Projeto completo de exemplo (marcos, escopo assinado, diário e ${totalAnexos} anexos): Plataforma AHK\n`);
-  console.log('Logins de teste:');
-  for (const p of pessoas) console.log(`  ${p.papel.padEnd(6)}  ${p.email.padEnd(22)} senha: ${p.senha}`);
-  await desconectarBanco();
+  console.log(`\nSeed completado: ${usuarios.length} usuarios, ${proyectosFake.length + 1} proyectos, ${totalTareas} tareas.`);
+  console.log(`Proyecto de ejemplo completo (hitos, alcance firmado, diario y ${totalAdjuntos} adjuntos): Plataforma AHK\n`);
+  console.log('Logins de prueba:');
+  for (const p of personas) console.log(`  ${p.rol.padEnd(6)}  ${p.email.padEnd(22)} contraseña: ${p.contrasena}`);
+  await desconectarBd();
 }
 
-main().catch(async (erro) => {
-  console.error('Erro no seed:', erro.message);
-  await desconectarBanco();
+main().catch(async (error) => {
+  console.error('Error en el seed:', error.message);
+  await desconectarBd();
   process.exit(1);
 });
